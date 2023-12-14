@@ -1,0 +1,571 @@
+> 邓语苏 计科 2021级
+>
+> 22920212204066
+
+# 实验一： 使用接口实现静态代理和动态代理
+
+![QQ截图20230610142401](E:\桌面\Java实验五\QQ截图20230610142401.jpg)
+
+## 实验过程
+
+* **People接口**
+
+```java
+public interface People {
+    //接口中的方法不能有方法体
+    public void speak();
+
+}
+
+```
+
+### 静态代理
+
+* **被代理的真实对象**
+
+```java
+//真实对象
+public class Chinese implements People{
+    private String name="Chinese";
+    public Chinese(){
+    }
+    public Chinese(String name){
+        this.name=name;
+    }
+    //重写People中的方法
+    public void speak(){
+        System.out.println(name+" speaks "+name);
+        System.out.println("After speaking\n");
+    }
+
+    public String getName() {
+        return name;
+    }
+}
+
+```
+
+* **代理对象（静态）**
+
+```java
+//代理角色
+public class ChineseProxy implements People{
+
+    //需要代理的对象
+    private Chinese people;
+    public ChineseProxy(Chinese people){
+        this.people=people;
+    }
+    //方法重写
+    @Override
+    public void speak(){
+        System.out.println("Using static proxy");
+        System.out.println("In "+people.getName()+" Proxy, before speaking");
+        people.speak();
+    }
+}
+
+```
+
+* **在Tester中调用静态代理**
+
+```java
+        //静态代理
+        //被代理对象
+        Chinese chinese=new Chinese();
+        //代理对象，将被代理对象传给代理对象
+        ChineseProxy chineseProxy=new ChineseProxy(chinese);
+        //由代理对象调用speak函数
+        chineseProxy.speak();
+```
+
+![QQ截图20230610143034](E:\桌面\Java实验五\QQ截图20230610143034.jpg)
+
+### 动态代理
+
+* **被代理的真实对象1----English**
+
+```java
+public class English implements People{
+    private String name="English";
+    public English(){
+
+    }
+    public English(String name){
+        this.name=name;
+    }
+    @Override
+    public void speak(){
+        System.out.println(name+" speaks "+name);
+        System.out.println("After speaking\n");
+    }
+}
+
+```
+
+* **被代理的真实对象1----American**
+
+```java
+public class American implements People{
+    private String name="USA";
+    public American(){
+
+    }
+    public American(String name){
+        this.name=name;
+    }
+    @Override
+    public void speak(){
+        System.out.println(name+" speaks "+name);
+        System.out.println("After speaking\n");
+    }
+}
+
+```
+
+* **代理对象（动态）**
+
+```java
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
+public class PeopleProxy implements InvocationHandler {
+
+    //要代理的真实对象
+    private Object target;
+    public PeopleProxy(Object target){
+        this.target=target;
+    }
+    //在InvocationHandler接口中的方法，用于处理代理类对象的方法调用
+    public Object invoke(Object proxy, Method method,Object[] args) throws Throwable{
+        System.out.println("Using dynamic proxy");
+        System.out.println("In proxy,before speaking");
+        method.invoke(target,args);
+        return null;
+    }
+
+}
+
+```
+
+* **在Tester中调用JDK动态代理**
+
+```java
+//动态代理
+        //被代理对象
+        People english=new English();
+        //代理对象，将被代理对象传入
+        InvocationHandler handler=new PeopleProxy(english);
+        //获取真实对象的类加载器
+        ClassLoader loader = english.getClass().getClassLoader();
+        //获取真实对象实现的接口列表
+        Class[] interfaces = english.getClass().getInterfaces();
+        //通过Proxy.newProxyInstance()方法生成动态代理类对象
+        People subject = (People) Proxy.newProxyInstance(loader, interfaces, handler);
+//        //打印动态代理对象的类型，即代理类的全限定名
+//        System.out.println("动态代理对象的类型："+subject.getClass().getName());
+        //调用方法
+        subject.speak();
+
+        //被代理对象
+        People USA=new American();
+        //代理对象，将被代理对象传入
+        InvocationHandler handler2=new PeopleProxy(USA);
+        //获取真实对象的类加载器
+        ClassLoader loader2 = USA.getClass().getClassLoader();
+        //获取真实对象实现的接口列表
+        Class[] interfaces2 = USA.getClass().getInterfaces();
+        //通过Proxy.newProxyInstance()方法生成动态代理类对象
+        People subject2 = (People) Proxy.newProxyInstance(loader2, interfaces2, handler2);
+//        //打印动态代理对象的类型，即代理类的全限定名
+//        System.out.println("动态代理对象的类型："+subject2.getClass().getName());
+        //调用方法
+        subject2.speak();
+```
+
+![QQ截图20230610143326](E:\桌面\Java实验五\QQ截图20230610143326.jpg)
+
+-----
+
+## 实验结果
+
+![QQ截图20230610142458](E:\桌面\Java实验五\QQ截图20230610142458.jpg)
+
+-----
+
+# 实验二：简单的工资系统
+
+![QQ截图20230612171126](E:\桌面\Java实验五\QQ截图20230612171126.jpg)
+
+-----
+
+## 实验过程
+
+按要求写即可。
+
+**Employee抽象类**
+
+```java
+package com.s2;
+//定义一个抽象类
+public abstract class Employee {
+    protected String name;
+    protected String id;
+    protected MyDate birthday;
+    public Employee(){
+        name="null";
+        id="null";
+        birthday=new MyDate(0,0,0);
+    }
+    public Employee(String name,String id,int year,int month,int day){
+        this.name=name;
+        this.id=id;
+        birthday=new MyDate(year,month,day);
+    }
+    //抽象方法
+    public abstract int getSalary();
+
+    public String toString(){
+        return"name："+name+"\n"+"id:"+id+"\n"+"birthday:"+birthday.toDateString()+"\n";
+    }
+}
+
+```
+
+**MyDate类**
+
+```java
+package com.s2;
+
+public class MyDate {
+    private int year;
+    private int month;
+    private int day;
+    public MyDate(){
+        year=0;
+        month=0;
+        day=0;
+    }
+    public MyDate(int year,int month,int day){
+        this.year=year;
+        this.month=month;
+        this.day=day;
+    }
+    public String toDateString(){
+        return year+"年"+month+"月"+day+"日";
+    }
+
+    public void setDay(int day) {
+        this.day = day;
+    }
+
+    public void setMonth(int month) {
+        this.month = month;
+    }
+
+    public void setYear(int year) {
+        this.year = year;
+    }
+
+    public int getDay() {
+        return day;
+    }
+
+    public int getMonth() {
+        return month;
+    }
+
+    public int getYear() {
+        return year;
+    }
+}
+
+```
+
+**全职员工类**
+
+```
+package com.s2;
+
+import javax.print.DocFlavor;
+
+public class FullTimeEmployee extends Employee{
+    private int salary;
+
+    public FullTimeEmployee(){
+        super();
+        salary=0;
+    }
+    public FullTimeEmployee(String name,String id,int year,int month,int day,int salary){
+        super(name,id,year,month,day);
+        this.salary=salary;
+    }
+
+    @Override
+    public int getSalary() {
+        //若本月为其生日
+        if (birthday.getMonth()==6)
+            return salary+100;
+        else
+            return salary;
+    }
+    public String toString(){
+        return super.toString()+"salary:"+getSalary()+"\n";
+    }
+}
+
+```
+
+**兼职员工类**
+
+```java
+package com.s2;
+
+public class PartTimeEmployee extends Employee{
+    private int workHours;
+    private int hourSalary;
+    public PartTimeEmployee(){
+        super();
+        workHours=0;
+        hourSalary=0;
+    }
+    public PartTimeEmployee(String name,String id,int year,int month,int day,int workHours,int hourSalary){
+        super(name,id,year,month,day);
+        this.hourSalary=hourSalary;
+        this.workHours=workHours;
+    }
+    @Override
+    public int getSalary(){
+        //若本月为其生日
+        if (birthday.getMonth()==6)
+            return workHours*hourSalary+100;
+        else
+            return workHours*hourSalary;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString()+"workHours:"+workHours+"\n"+"hourSalary:"+hourSalary+"\n"+"Salary:"+getSalary()+"\n";
+    }
+}
+
+```
+
+**测试类**
+
+```java
+package com.s2;
+
+public class Tester {
+    public static void main(String[] args) {
+        FullTimeEmployee p1=new FullTimeEmployee("小明","1",2000,3,4,5000);
+        FullTimeEmployee p2=new FullTimeEmployee("小红","2",2000,6,4,5000);
+
+        PartTimeEmployee p3=new PartTimeEmployee("李华","3",2000,3,4,8,600);
+        PartTimeEmployee p4=new PartTimeEmployee("张伟","3",2000,6,4,8,600);
+
+        System.out.println(p1.toString());
+        System.out.println(p2.toString());
+        System.out.println(p3.toString());
+        System.out.println(p4.toString());
+    }
+}
+
+```
+
+-----
+
+<img src="E:\桌面\Java实验五\QQ截图20230612171800.jpg" alt="QQ截图20230612171800" style="zoom: 67%;" />
+
+-----
+
+# 实验三：Image Gallery
+
+![QQ截图20230615210246](QQ截图20230615210246.jpg)
+
+----
+
+## 实验过程
+
+**核心代码**
+
+* 固定窗口大小
+
+```java
+    //固定窗口大小
+	private static final int WINDOW_WIDTH = 1080;
+    private static final int WINDOW_HEIGHT = 720;
+    private static final int MAX_IMAGES = 4;
+    private static final String IMAGE_DIRECTORY = "E:\\桌面\\java实验";
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+```
+
+* 使用指定布局
+
+```java
+    private GridPane createImageGrid() {
+        GridPane imageGrid = new GridPane();
+
+        List<File> imageFiles = getImageFiles();
+        int numImages = Math.min(imageFiles.size(), 4);
+        int[] col = {0,1,1,2};
+        int[] row = {0,0,1,1};
+
+        //占几列、几行
+        int[] columnSpan={1,2,1,1};
+        int[] rowSpan={2,1,1,1};
+
+        // 自定义图片布局的坐标和尺寸
+        //3x2的列表
+        double[] columnWidths = { 540,270,270 };
+        double[] rowHeights = { 360,360};
+
+        for (int i = 0; i < numImages; i++) {
+            File file = imageFiles.get(i);
+            ImageView imageView = createImageView(file);
+            GridPane.setConstraints(imageView, col[i], row[i], columnSpan[i], rowSpan[i]);
+
+            // 设置网格列宽和行高
+            ColumnConstraints colConstraints = new ColumnConstraints(columnWidths[col[i]]);
+            imageGrid.getColumnConstraints().add(colConstraints);
+
+            RowConstraints rowConstraints = new RowConstraints(rowHeights[row[i]]);
+            imageGrid.getRowConstraints().add(rowConstraints);
+            // 将ImageView添加到网格布局中
+            imageGrid.getChildren().add(imageView);
+        }
+
+        return imageGrid;
+    }
+```
+
+* 图片自适应大小
+
+```java
+    private ImageView createImageView(File file) {
+        Image image = new Image(file.toURI().toString());
+        ImageView imageView = new ImageView(image);
+        imageView.setPreserveRatio(true);
+
+        // 计算适应宽度和适应高度
+        double windowWidth = WINDOW_WIDTH - 20; // 减去边距的宽度
+        double windowHeight = WINDOW_HEIGHT - 20; // 减去边距的高度
+        double fitWidth = windowWidth / 2 - 15;
+        double fitHeight = windowHeight / 2 - 15;
+
+        imageView.setFitWidth(fitWidth);
+        imageView.setFitHeight(fitHeight);
+
+        return imageView;
+    }
+```
+
+----
+
+## 实现效果
+
+![QQ截图20230615211043](QQ截图20230615211043.jpg)
+
+-----
+
+# 实验四：设计一个JavaFX
+
+![QQ截图20230616192104](QQ截图20230616192104.jpg)
+
+----
+
+## 实验过程
+
+**核心代码：**
+
+```java
+public class CalculatorApp extends Application {
+
+    @Override
+    public void start(Stage primaryStage) {
+        primaryStage.setTitle("Calculator");
+
+        // 创建一个 GridPane 用于放置按钮
+        GridPane buttonGrid = createButtonGrid();
+
+        // 创建一个 TextField 用于显示结果
+        TextField displayField = createDisplayField();
+
+        // 创建一个 VBox 用于放置显示结果和按钮
+        VBox vbox = new VBox(10);
+        vbox.setAlignment(Pos.CENTER);
+        vbox.setPadding(new Insets(10));
+        vbox.getChildren().addAll(displayField, buttonGrid);
+
+        // 创建一个场景并将其设置在舞台上
+        Scene scene = new Scene(vbox);
+        primaryStage.setScene(scene);
+
+        primaryStage.show();
+    }
+
+    private GridPane createButtonGrid() {
+        GridPane gridPane = new GridPane();
+        gridPane.setAlignment(Pos.CENTER);
+        gridPane.setHgap(5);
+        gridPane.setVgap(5);
+
+        // 创建数字按钮
+        for (int i = 0; i < 9; i++) {
+            Button numberButton = createNumberButton(String.valueOf(i + 1));
+            gridPane.add(numberButton, i % 3, i / 3);
+        }
+
+        // 创建运算符按钮
+        Button addButton = createOperatorButton("+");
+        Button subtractButton = createOperatorButton("-");
+        Button multiplyButton = createOperatorButton("*");
+        Button divideButton = createOperatorButton("/");
+
+        gridPane.add(addButton, 3, 0);
+        gridPane.add(subtractButton, 3, 1);
+        gridPane.add(multiplyButton, 3, 2);
+        gridPane.add(divideButton, 3, 3);
+
+        return gridPane;
+    }
+
+    private Button createNumberButton(String number) {
+        Button button = new Button(number);
+        button.setPrefWidth(60);
+        button.setPrefHeight(40);
+        button.setStyle("-fx-background-color: #EFEFEF;");
+        return button;
+    }
+
+    private Button createOperatorButton(String operator) {
+        Button button = new Button(operator);
+        button.setPrefWidth(60);
+        button.setPrefHeight(40);
+        button.setStyle("-fx-background-color: #333333; -fx-text-fill: white;");
+        return button;
+    }
+
+    private TextField createDisplayField() {
+        TextField textField = new TextField();
+        textField.setEditable(false);
+        textField.setAlignment(Pos.CENTER_RIGHT);
+        textField.setStyle("-fx-font-size: 18;");
+        return textField;
+    }
+
+    public static void main(String[] args) {
+        launch();
+    }
+}
+```
+
+----
+
+## 实验结果
+
+![QQ截图20230616191603](QQ截图20230616191603.jpg)
